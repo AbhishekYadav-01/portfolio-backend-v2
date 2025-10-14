@@ -35,9 +35,9 @@ SECRET_KEY = 'django-insecure-4%*7byyc^$g+#(5ofry%-_t9!cdk@bw^(_+g8by4bgmn-a&t)f
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False  
 
-ALLOWED_HOSTS = ['portfolio-frontend-chi-sooty.vercel.app', '127.0.0.1']  # Allow all hosts (update later if needed)
+ALLOWED_HOSTS = ['portfolio-frontend-chi-sooty.vercel.app','portfolio-backend-v2-3kgf.onrender.com', '127.0.0.1']  # Allow all hosts (update later if needed)
 
-CSRF_TRUSTED_ORIGINS = ['https://*.up.railway.app', 'https://portfolio-frontend-chi-sooty.vercel.app']
+CSRF_TRUSTED_ORIGINS = ['https://*.up.railway.app','https://portfolio-frontend-chi-sooty.vercel.app']
 
 # Application definition
 
