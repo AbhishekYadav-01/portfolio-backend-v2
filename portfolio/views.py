@@ -64,6 +64,12 @@ def get_resume_chunks():
         print(f"Error processing resume PDF: {e}")
         return []
 
+class IsAdminOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True # Allow GET, HEAD, OPTIONS requests
+        return request.user and request.user.is_staff
+    
 class ChatView(APIView):
     def post(self, request):
         question = request.data.get('question')
@@ -151,24 +157,49 @@ class ChatView(APIView):
 
 # --- Your other views remain unchanged ---
 
-class ProjectList(generics.ListAPIView):
+class ProjectList(generics.ListCreateAPIView):
+    permission_classes = [IsAdminOrReadOnly]
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
 
-class AboutMeDetail(generics.RetrieveAPIView):
+class ProjectDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+
+class AboutMeDetail(generics.RetrieveUpdateAPIView): # Only one AboutMe object, so no create/delete list
+    permission_classes = [IsAdminOrReadOnly]
     queryset = AboutMe.objects.all()
     serializer_class = AboutMeSerializer
     def get_object(self):
         return AboutMe.objects.first()
 
-class SkillList(generics.ListAPIView):
+class SkillList(generics.ListCreateAPIView):
+    permission_classes = [IsAdminOrReadOnly]
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
 
-class ExperienceList(generics.ListAPIView):
+class SkillDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = Skill.objects.all()
+    serializer_class = SkillSerializer
+
+class ExperienceList(generics.ListCreateAPIView):
+    permission_classes = [IsAdminOrReadOnly]
     queryset = Experience.objects.all()
     serializer_class = ExperienceSerializer
 
-class EducationList(generics.ListAPIView):
+class ExperienceDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = Experience.objects.all()
+    serializer_class = ExperienceSerializer
+
+class EducationList(generics.ListCreateAPIView):
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = Education.objects.all()
+    serializer_class = EducationSerializer
+
+class EducationDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminOrReadOnly]
     queryset = Education.objects.all()
     serializer_class = EducationSerializer
