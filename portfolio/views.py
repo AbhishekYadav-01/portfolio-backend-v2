@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics,permissions
 from .models import Project, AboutMe, Skill, Experience, Education
 from .serializers import ProjectSerializer, AboutMeSerializer, SkillSerializer, ExperienceSerializer, EducationSerializer
 from rest_framework.views import APIView
