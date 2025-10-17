@@ -131,7 +131,7 @@ class ChatView(APIView):
                     *conversation_history,
                     {"role": "user", "content": groq_prompt}
                 ],
-                model="gemma-7b-it", # Switched to a known fast and reliable model
+                model="openai/gpt-oss-20b", # Switched to a known fast and reliable model
                 temperature=0.3,
             )
             
