@@ -2,15 +2,17 @@ Django==4.2
 djangorestframework==3.14.0
 django-cors-headers==4.2.0
 groq==0.19.0
-faiss-cpu
-sentence-transformers
-PyPDF2
-numpy
-python-decouple
-dotenv
-Django
-gunicorn==21.2.0  # Explicitly add this line
+# faiss-cpu
+# sentence-transformers
+# PyPDF2
+# numpy
+# python-decouple
+# dotenv
+# Django
+gunicorn
+pypdf2
+python-dotenv
 whitenoise
 dj-database-url
 psycopg2-binary
-python-dotenv
+requests
