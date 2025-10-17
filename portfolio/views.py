@@ -69,21 +69,21 @@ class ChatView(APIView):
         question = request.data.get('question')
         if not question:
             return Response({"error": "Question is required"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Get resume chunks using the cached function
-        text_chunks = get_resume_chunks()
-        
-        if not text_chunks:
-            return Response({"answer": "Sorry, the resume content is not available."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
+        # --- 1. Get Resume Chunks ---
         try:
-            # --- Query Hugging Face for Similarity Scores ---
+            text_chunks = get_resume_chunks()
+            if not text_chunks:
+                return Response({"answer": "Sorry, the resume content is not available to answer questions."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except Exception as e:
+            print(f"ERROR reading resume PDF: {e}")
+            return Response({"answer": "Sorry, there was an error reading the resume information."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # --- 2. Query Hugging Face for Similarity ---
+        try:
             def query_hf_similarity(question, chunks):
                 payload = {
-                    "inputs": {
-                        "source_sentence": question,
-                        "sentences": chunks
-                    },
+                    "inputs": { "source_sentence": question, "sentences": chunks },
                     "options": {"wait_for_model": True}
                 }
                 response = requests.post(API_URL, headers=headers, json=payload)
@@ -91,11 +91,19 @@ class ChatView(APIView):
                 return response.json()
 
             similarity_scores = query_hf_similarity(question, text_chunks)
-            
             most_relevant_chunk_index = np.argmax(similarity_scores)
             relevant_chunk = text_chunks[most_relevant_chunk_index]
-            
-            # --- The rest of the logic remains the same ---
+
+        except requests.exceptions.RequestException as e:
+            print(f"Hugging Face API Error: {e}")
+            return Response({"answer": "Sorry, I'm having trouble connecting to the similarity service right now."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except Exception as e:
+            print(f"ERROR processing similarity scores: {e}")
+            return Response({"answer": "Sorry, there was an error analyzing your question's relevance."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+        # --- 3. Get Answer from Groq API ---
+        try:
             session_id = request.session.session_key
             if not session_id:
                 request.session.create()
@@ -123,7 +131,7 @@ class ChatView(APIView):
                     *conversation_history,
                     {"role": "user", "content": groq_prompt}
                 ],
-                model="openai/gpt-oss-20b",
+                model="gemma-7b-it", # Switched to a known fast and reliable model
                 temperature=0.3,
             )
             
@@ -137,14 +145,9 @@ class ChatView(APIView):
 
             return Response({"answer": answer}, status=status.HTTP_200_OK)
 
-        except requests.exceptions.RequestException as e:
-            print(f"Hugging Face API Error: {e}")
-            if e.response:
-                print(f"Response Content: {e.response.content}")
-            return Response({"answer": "Sorry, I'm having trouble understanding the question right now."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         except Exception as e:
-            print(f"Error processing chat request: {e}")
-            return Response({"answer": "Sorry, I couldn't process your question at the moment."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print(f"ERROR with Groq API or session management: {e}")
+            return Response({"answer": "Sorry, the AI chat service is not responding correctly."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # --- Your other views remain unchanged ---
 
